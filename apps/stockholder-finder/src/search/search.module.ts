@@ -1,9 +1,16 @@
 import { Module } from '@nestjs/common';
+import { ElasticsearchModule } from '@nestjs/elasticsearch';
 import { SearchService } from './search.service';
 import { SearchController } from './search.controller';
 
 @Module({
+  imports: [
+    ElasticsearchModule.register({
+      node: process.env.ELASTICSEARCH_URL || 'http://localhost:9200',
+    }),
+  ],
   providers: [SearchService],
-  controllers: [SearchController]
+  controllers: [SearchController],
+  exports: [SearchService],
 })
 export class SearchModule {}
