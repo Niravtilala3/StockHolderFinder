@@ -13,7 +13,7 @@ export class ShareholdersService {
   async findOneWithHoldings(id: string): Promise<Shareholder> {
     const shareholder = await this.shareholderRepository.findOne({
       where: { id },
-      relations: ['holdings', 'holdings.company'],
+      relations: { holdings: { company: true } },
     });
     if (!shareholder) {
       throw new NotFoundException(`Shareholder with ID ${id} not found`);

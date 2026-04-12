@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ShareholdersService } from './shareholders.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Shareholder } from '@app/database/entities/shareholder.entity';
+import { NotFoundException } from '@nestjs/common';
 
 describe('ShareholdersService', () => {
   let service: ShareholdersService;
@@ -31,7 +32,12 @@ describe('ShareholdersService', () => {
     expect(result).toEqual(mockData);
     expect(mockShareholderRepo.findOne).toHaveBeenCalledWith({
       where: { id: '1' },
-      relations: ['holdings', 'holdings.company'],
+      relations: { holdings: { company: true } },
     });
+  });
+
+  it('should throw NotFoundException when shareholder is not found', async () => {
+    mockShareholderRepo.findOne.mockResolvedValue(null);
+    await expect(service.findOneWithHoldings('999')).rejects.toThrow(NotFoundException);
   });
 });
