@@ -1,18 +1,43 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ShareholdersService } from './shareholders.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Shareholder } from '@app/database/entities/shareholder.entity';
+import { NotFoundException } from '@nestjs/common';
 
 describe('ShareholdersService', () => {
   let service: ShareholdersService;
+  const mockShareholderRepo = {
+    findOne: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ShareholdersService],
+      providers: [
+        ShareholdersService,
+        {
+          provide: getRepositoryToken(Shareholder),
+          useValue: mockShareholderRepo,
+        },
+      ],
     }).compile();
 
     service = module.get<ShareholdersService>(ShareholdersService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  it('should find shareholder with holdings', async () => {
+    const mockData = { id: '1', name: 'John Doe', holdings: [] };
+    mockShareholderRepo.findOne.mockResolvedValue(mockData);
+
+    const result = await service.findOneWithHoldings('1');
+    expect(result).toEqual(mockData);
+    expect(mockShareholderRepo.findOne).toHaveBeenCalledWith({
+      where: { id: '1' },
+      relations: { holdings: { pattern: { company: true } } },
+    });
+  });
+
+  it('should throw NotFoundException when shareholder is not found', async () => {
+    mockShareholderRepo.findOne.mockResolvedValue(null);
+    await expect(service.findOneWithHoldings('999')).rejects.toThrow(NotFoundException);
   });
 });
