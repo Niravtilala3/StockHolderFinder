@@ -32,7 +32,7 @@ describe('ShareholdersService', () => {
     expect(result).toEqual(mockData);
     expect(mockShareholderRepo.findOne).toHaveBeenCalledWith({
       where: { id: '1' },
-      relations: { holdings: { company: true } },
+      relations: { holdings: { pattern: { company: true } } },
     });
   });
 
