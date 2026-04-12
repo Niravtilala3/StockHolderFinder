@@ -27,4 +27,22 @@ describe('SearchService', () => {
     expect(result).toBe(true);
     expect(esService.ping).toHaveBeenCalled();
   });
+
+  it('should index a shareholder and search it', async () => {
+    esService.index = jest.fn().mockResolvedValue({ result: 'created' });
+    esService.search = jest.fn().mockResolvedValue({
+      hits: { hits: [{ _source: { id: '1', name: 'John Doe' } }] },
+    });
+
+    await service.indexShareholder('1', 'John Doe');
+    expect(esService.index).toHaveBeenCalledWith({
+      index: 'shareholders',
+      id: '1',
+      document: { name: 'John Doe' },
+    });
+
+    const results = await service.searchShareholders('John');
+    expect(esService.search).toHaveBeenCalled();
+    expect(results).toEqual([{ id: '1', name: 'John Doe' }]);
+  });
 });

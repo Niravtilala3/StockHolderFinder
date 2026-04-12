@@ -9,4 +9,22 @@ export class SearchService {
     const result = await this.elasticsearchService.ping();
     return !!result;
   }
+
+  async indexShareholder(id: string, name: string) {
+    return this.elasticsearchService.index({
+      index: 'shareholders',
+      id,
+      document: { name },
+    });
+  }
+
+  async searchShareholders(query: string) {
+    const result = await this.elasticsearchService.search({
+      index: 'shareholders',
+      query: {
+        match: { name: { query, fuzziness: 'AUTO' } },
+      },
+    });
+    return result.hits.hits.map((hit: any) => hit._source);
+  }
 }
